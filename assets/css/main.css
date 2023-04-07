@@ -3155,7 +3155,7 @@ input, select, textarea {
 			border-radius: 0;
 			display: block;
 			position: relative;
-			width: 0em;
+			width: 100%;
 		}
 
 			.spotlights2 > section > .image img {
@@ -3193,7 +3193,7 @@ input, select, textarea {
 			-webkit-justify-content: center;
 			-ms-justify-content: center;
 			justify-content: center;
-			width: 50em;
+			width: 100%;
 			-ms-flex: 1;
 		}
 
