@@ -2585,7 +2585,6 @@ input, select, textarea {
         .image img {
             border-radius: 0.25em;
             display: block;
-            opacity: 0.5;
         }
 
         .image.left, .image.right {
@@ -3030,6 +3029,7 @@ input, select, textarea {
             .spotlights > section > .image img {
                 border-radius: 0;
                 display: block;
+                opacity: 0.5;
             }
 
             .spotlights > section > .image:before {
@@ -3037,7 +3037,7 @@ input, select, textarea {
                 -webkit-transition: opacity 1s ease;
                 -ms-transition: opacity 1s ease;
                 transition: opacity 1s ease;
-                background: rgba(49, 36, 80, 0.9);
+                background: var(--primary_dark);
                 content: '';
                 display: block;
                 height: 100%;
@@ -3088,7 +3088,7 @@ input, select, textarea {
 
         .spotlights > section.inactive > .image:before,
         body.is-preload .spotlights > section > .image:before {
-            opacity: 1;
+            opacity: .8;
         }
 
         .spotlights > section.inactive > .content > .inner,
