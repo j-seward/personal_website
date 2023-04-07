@@ -2579,6 +2579,8 @@ input, select, textarea {
         height: 400px;
         border-radius: 50%; 
         float: left;
+        margin: 0 1.5em 1em 0;
+        top: 0.25em;
     }
     .circular--portrait { 
         position: relative; 
