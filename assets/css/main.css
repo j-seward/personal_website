@@ -2579,7 +2579,7 @@ input, select, textarea {
         height: 300px;
         border-radius: 50%; 
         float: left;
-        margin: 2 2em 2em 2;
+        margin: 0 2em 2em 2;
         top: 0.25em;
         opacity: 0.8;
     }
