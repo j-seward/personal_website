@@ -2581,6 +2581,7 @@ input, select, textarea {
         float: left;
         margin: 2 2em 2em 2;
         top: 0.25em;
+        opacity: 0.8;
     }
     .circular--portrait { 
         position: relative; 
@@ -3044,7 +3045,7 @@ input, select, textarea {
             display: block;
             position: relative;
             width: 25em;
-            opacity: 0.8
+            opacity: 0.8;
         }
 
             .spotlights > section > .image img {
