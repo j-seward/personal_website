@@ -13,9 +13,11 @@
     --primary_light: #385169;
     --primary_very_light: #486582;
     --secondary_light: #EC6A5C;
-    --secondary_dark: #B53C2F;
+    --secondary_dark: #69231B;
+    /*--secondary_dark: #B53C2F;*/
     --accent_light: #56C8B1;
-    --accent_dark: #18BC9C;
+    --accent_dark: #128A72;
+    /*--accent_dark: #18BC9C;*/
 }
 
 html, body, div, span, applet, object,
