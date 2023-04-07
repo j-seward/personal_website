@@ -12,11 +12,11 @@
     --primary: #32475C;
     --primary_light: #385169;
     --primary_very_light: #486582;
-    --secondary_light: #128A72;
-    --secondary_dark: #56C8B1;
+    --secondary_light: #256C9C; /*#A8382C; */
+    --secondary_dark: #85C9F7;/*#EC6A5C;*/
     /*--secondary_dark: #B53C2F;*/
-    --accent_light: #69231B;/* #EC6A5C;*/
-    --accent_dark: #EC6A5C;/*#69231B;*/
+    --accent_light: #128A72;/* #EC6A5C;*/
+    --accent_dark: #56C8B1;/*#69231B;*/
     /*--accent_dark: #18BC9C;*/
 }
 
