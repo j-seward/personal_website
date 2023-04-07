@@ -2487,13 +2487,7 @@ input, select, textarea {
 	.icon {
 		text-decoration: none;
 		border-bottom: none;
-		/*position: relative;*/
-		
-		  margin: 0;
-		  position: absolute;
-		  top: 50%;
-		  -ms-transform: translateY(-50%);
-		  transform: translateY(-50%);
+		position: relative;
 	}
 
 		.icon:before {
