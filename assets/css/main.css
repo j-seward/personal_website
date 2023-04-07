@@ -2575,10 +2575,10 @@ input, select, textarea {
 
 /* Image */
     .circular--square { 
-        width: 200px; 
-        height: 200px;
+        width: 400px; 
+        height: 400px;
         border-radius: 50%; 
-        float: right;
+        float: left;
     }
     .circular--portrait { 
         position: relative; 
