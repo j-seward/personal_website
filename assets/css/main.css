@@ -3088,7 +3088,7 @@ input, select, textarea {
 
         .spotlights > section.inactive > .image:before,
         body.is-preload .spotlights > section > .image:before {
-            opacity: .8;
+            opacity: .5;
         }
 
         .spotlights > section.inactive > .content > .inner,
