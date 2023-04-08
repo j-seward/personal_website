@@ -2575,12 +2575,12 @@ input, select, textarea {
 
 /* Image */
     .circular--square { 
-        width: 300px; 
-        height: 300px;
+        width: 40%; 
+        height: 40%;
         border-radius: 50%; 
         float: left;
         margin: 0 2em 2em 2em;
-        top: 0.25em;
+        top: 2em;
         opacity: 0.8;
         text-align:center;
     }
@@ -2621,6 +2621,8 @@ input, select, textarea {
             float: left;
             margin: 0 1.5em 1em 0;
             top: 0.25em;
+            border-radius: 50%;
+            opacity: 0.8;
         }
 
         .image.right {
