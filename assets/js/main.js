@@ -1,190 +1,1164 @@
-/*
-	Hyperspace by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-*/
+/* ============================================================
+   Main Interactions — jseward.com
+   Navigation, scroll effects, counters, publication cards
+   ============================================================ */
 
-(function($) {
+(function () {
+  'use strict';
 
-	var	$window = $(window),
-		$body = $('body'),
-		$sidebar = $('#sidebar');
+  // --- Navbar + mobile navigation ---
+  const navbar = document.getElementById('navbar');
+  const heroSection = document.getElementById('hero');
+  const mainContent = document.getElementById('main-content');
+  const navToggle = document.getElementById('nav-toggle');
+  const navMenu = document.getElementById('nav-menu');
+  const sectionNav = document.getElementById('section-nav');
+  const sectionProgressBar = document.getElementById('section-progress-bar');
+  const prevSectionBtn = document.getElementById('prev-section');
+  const nextSectionBtn = document.getElementById('next-section');
+  const backToTopBtn = document.getElementById('back-to-top');
+  const inertTargets = [heroSection, mainContent].filter(Boolean);
+  const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobileMenuQuery = window.matchMedia('(max-width: 768px)');
+  const primarySectionIds = ['hero', 'about', 'research', 'teaching', 'experience', 'contact'];
+  const primarySections = primarySectionIds
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  const navLinks = document.querySelectorAll('.nav-menu-primary .nav-link[href^="#"]');
+  const navSections = Array.from(navLinks)
+    .map(link => {
+      const href = link.getAttribute('href') || '';
+      const id = href.replace('#', '');
+      return document.getElementById(id);
+    })
+    .filter(Boolean);
+  let lastFocusedElement = null;
+  let publicationAccordionPauseUntil = 0;
 
-	// Breakpoints.
-		breakpoints({
-			xlarge:   [ '1281px',  '1680px' ],
-			large:    [ '981px',   '1280px' ],
-			medium:   [ '737px',   '980px'  ],
-			small:    [ '481px',   '736px'  ],
-			xsmall:   [ null,      '480px'  ]
-		});
+  function setNavOffset() {
+    if (!navbar) return;
+    document.documentElement.style.setProperty('--nav-offset', `${navbar.offsetHeight}px`);
+    const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+    document.documentElement.style.setProperty('--section-nav-offset', `${sectionNavHeight}px`);
+  }
 
-	// Hack: Enable IE flexbox workarounds.
-		if (browser.name == 'ie')
-			$body.addClass('is-ie');
+  function updateNavbar() {
+    if (!navbar) return;
+    if (window.scrollY > 80) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+    setNavOffset();
+  }
 
-	// Play initial animations on page load.
-		$window.on('load', function() {
-			window.setTimeout(function() {
-				$body.removeClass('is-preload');
-			}, 100);
-		});
+  window.addEventListener('scroll', updateNavbar, { passive: true });
+  window.addEventListener('resize', setNavOffset, { passive: true });
+  setNavOffset();
+  updateNavbar();
 
-	// Forms.
+  function setBackgroundInert(isInert) {
+    inertTargets.forEach(target => {
+      if ('inert' in target) {
+        target.inert = isInert;
+      } else if (isInert) {
+        target.setAttribute('aria-hidden', 'true');
+      } else {
+        target.removeAttribute('aria-hidden');
+      }
+    });
+  }
 
-		// Hack: Activate non-input submits.
-			$('form').on('click', '.submit', function(event) {
+  function getMenuFocusableElements() {
+    if (!navMenu) return [];
+    return Array.from(navMenu.querySelectorAll(focusableSelector));
+  }
 
-				// Stop propagation, default.
-					event.stopPropagation();
-					event.preventDefault();
+  function openMenu() {
+    if (!navMenu || !navToggle) return;
+    lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    navMenu.classList.add('active');
+    navToggle.classList.add('active');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navMenu.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+    setBackgroundInert(true);
 
-				// Submit form.
-					$(this).parents('form').submit();
+    const focusable = getMenuFocusableElements();
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    }
+  }
 
-			});
+  function closeMenu(returnFocus = false) {
+    if (!navMenu || !navToggle) return;
+    if (!navMenu.classList.contains('active')) return;
 
-	// Sidebar.
-		if ($sidebar.length > 0) {
+    navMenu.classList.remove('active');
+    navToggle.classList.remove('active');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navMenu.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-open');
+    setBackgroundInert(false);
 
-			var $sidebar_a = $sidebar.find('a');
+    if (returnFocus) {
+      if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+        lastFocusedElement.focus();
+      } else {
+        navToggle.focus();
+      }
+    }
+    lastFocusedElement = null;
+  }
 
-			$sidebar_a
-				.addClass('scrolly')
-				.on('click', function() {
+  function trapFocusInMenu(event) {
+    if (!navMenu || !navMenu.classList.contains('active')) return;
+    const focusable = getMenuFocusableElements();
+    if (focusable.length === 0) {
+      event.preventDefault();
+      navToggle.focus();
+      return;
+    }
 
-					var $this = $(this);
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
 
-					// External link? Bail.
-						if ($this.attr('href').charAt(0) != '#')
-							return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
-					// Deactivate all links.
-						$sidebar_a.removeClass('active');
+  if (navMenu) {
+    navMenu.setAttribute('aria-hidden', 'true');
+  }
 
-					// Activate link *and* lock it (so Scrollex doesn't try to activate other links as we're scrolling to this one's section).
-						$this
-							.addClass('active')
-							.addClass('active-locked');
+  if (navToggle && navMenu) {
+    navToggle.addEventListener('click', () => {
+      if (navMenu.classList.contains('active')) {
+        closeMenu(true);
+      } else {
+        openMenu();
+      }
+    });
 
-				})
-				.each(function() {
+    // Preserve native hash behavior, only close mobile menu on in-page link clicks.
+    navMenu.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', () => closeMenu(false));
+    });
+  }
 
-					var	$this = $(this),
-						id = $this.attr('href'),
-						$section = $(id);
+  const closeMenuOnDesktop = (event) => {
+    if (event.matches) return;
+    closeMenu(false);
+  };
+  if (typeof mobileMenuQuery.addEventListener === 'function') {
+    mobileMenuQuery.addEventListener('change', closeMenuOnDesktop);
+  } else if (typeof mobileMenuQuery.addListener === 'function') {
+    mobileMenuQuery.addListener(closeMenuOnDesktop);
+  }
 
-					// No section for this link? Bail.
-						if ($section.length < 1)
-							return;
+  // Close menu on outside click
+  document.addEventListener('click', (e) => {
+    if (!navMenu || !navToggle) return;
+    if (!navMenu.classList.contains('active')) return;
+    if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+      closeMenu(false);
+    }
+  });
 
-					// Scrollex.
-						$section.scrollex({
-							mode: 'middle',
-							top: '-20vh',
-							bottom: '-20vh',
-							initialize: function() {
+  // --- Active section highlighting + progressive navigation ---
+  function setActiveLinkState(links, currentId) {
+    links.forEach(link => {
+      const isActive = link.getAttribute('href') === `#${currentId}`;
+      link.classList.toggle('active', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'location');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  }
 
-								// Deactivate section.
-									$section.addClass('inactive');
+  function getCurrentPrimarySectionId() {
+    if (navSections.length === 0) return '';
+    const navHeight = navbar ? navbar.offsetHeight : 0;
+    const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+    // Determine active nav item from a stable viewport trigger line.
+    // This is less sensitive to dynamic content height changes (e.g., accordion expansion).
+    const triggerLine = navHeight + sectionNavHeight + Math.max(150, Math.round(window.innerHeight * 0.38));
+    const firstRect = navSections[0].getBoundingClientRect();
+    if (triggerLine < firstRect.top) return '';
 
-							},
-							enter: function() {
+    let activeId = '';
+    navSections.forEach(section => {
+      const rect = section.getBoundingClientRect();
+      if (rect.top <= triggerLine && rect.bottom > triggerLine) {
+        activeId = section.id;
+      }
+    });
 
-								// Activate section.
-									$section.removeClass('inactive');
+    if (activeId) return activeId;
+    const lastSection = navSections[navSections.length - 1];
+    return lastSection ? lastSection.id : '';
+  }
 
-								// No locked links? Deactivate all links and activate this section's one.
-									if ($sidebar_a.filter('.active-locked').length == 0) {
+  function getCurrentPrimarySectionIdForJump() {
+    if (primarySections.length === 0) return '';
+    const navHeight = navbar ? navbar.offsetHeight : 0;
+    const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+    const aboutSection = document.getElementById('about');
+    const triggerLineY = window.scrollY + navHeight + sectionNavHeight + 10;
+    if (aboutSection && triggerLineY < aboutSection.offsetTop) {
+      return 'hero';
+    }
+    // Use a near-top trigger so Previous/Next updates promptly after scrolling.
+    const scrollPos = triggerLineY;
+    let currentId = primarySections[0].id;
 
-										$sidebar_a.removeClass('active');
-										$this.addClass('active');
+    primarySections.forEach(section => {
+      if (section.offsetTop <= scrollPos) {
+        currentId = section.id;
+      }
+    });
+    return currentId;
+  }
 
-									}
+  function updateSectionProgress() {
+    if (!sectionProgressBar || primarySections.length < 2) return;
+    const navHeight = navbar ? navbar.offsetHeight : 0;
+    const firstTop = primarySections[0].offsetTop - navHeight;
+    const lastTop = primarySections[primarySections.length - 1].offsetTop - navHeight;
+    const denominator = Math.max(lastTop - firstTop, 1);
+    const ratio = (window.scrollY - firstTop) / denominator;
+    const progress = Math.min(Math.max(ratio, 0), 1);
+    sectionProgressBar.style.width = `${progress * 100}%`;
+  }
 
-								// Otherwise, if this section's link is the one that's locked, unlock it.
-									else if ($this.hasClass('active-locked'))
-										$this.removeClass('active-locked');
+  function setJumpButtonState(button, targetId, fallbackText) {
+    if (!button) return;
+    if (targetId) {
+      button.disabled = false;
+      button.dataset.target = targetId;
+      button.removeAttribute('aria-disabled');
+      button.textContent = fallbackText;
+    } else {
+      button.disabled = true;
+      button.dataset.target = '';
+      button.setAttribute('aria-disabled', 'true');
+      button.textContent = fallbackText;
+    }
+  }
 
-							}
-						});
+  function updateSectionJumpControls(currentId) {
+    if (primarySections.length === 0) return;
+    const currentIndex = primarySections.findIndex(section => section.id === currentId);
+    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+    const prevId = safeIndex > 0 ? primarySections[safeIndex - 1].id : '';
+    const nextId = safeIndex < primarySections.length - 1 ? primarySections[safeIndex + 1].id : '';
 
-				});
+    setJumpButtonState(prevSectionBtn, prevId, 'Previous');
+    setJumpButtonState(nextSectionBtn, nextId, 'Next');
+  }
 
-		}
+  function updateBackToTop() {
+    if (!backToTopBtn) return;
+    const visible = window.scrollY > window.innerHeight * 0.85;
+    backToTopBtn.classList.toggle('visible', visible);
+    backToTopBtn.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    backToTopBtn.tabIndex = visible ? 0 : -1;
+  }
 
-	// Scrolly.
-		$('.scrolly').scrolly({
-			speed: 1000,
-			offset: function() {
+  function scrollToSection(targetId, options = {}) {
+    const { forJump = false } = options;
+    if (!targetId) return;
+    let resolvedTargetId = targetId;
+    // Guardrail: never allow Hero -> Next to skip About.
+    if (forJump && targetId === 'research') {
+      const aboutSection = document.getElementById('about');
+      const navHeight = navbar ? navbar.offsetHeight : 0;
+      if (aboutSection && window.scrollY < (aboutSection.offsetTop - navHeight - 24)) {
+        resolvedTargetId = 'about';
+      }
+    }
+    const target = document.getElementById(resolvedTargetId);
+    if (!target) return;
+    if (forJump) {
+      const navHeight = navbar ? navbar.offsetHeight : 0;
+      const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+      const offset = navHeight + sectionNavHeight + 8;
+      const targetY = window.scrollY + target.getBoundingClientRect().top - offset;
+      window.scrollTo({
+        top: Math.max(targetY, 0),
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      });
+      // Ensure controls refresh after smooth scroll settles.
+      window.setTimeout(updateActiveSection, prefersReducedMotion ? 0 : 260);
+      return;
+    }
+    target.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }
 
-				// If <=large, >small, and sidebar is present, use its height as the offset.
-					if (breakpoints.active('<=large')
-					&&	!breakpoints.active('<=small')
-					&&	$sidebar.length > 0)
-						return $sidebar.height();
+  function isHeroActiveForJump() {
+    if (!heroSection) return false;
+    const navHeight = navbar ? navbar.offsetHeight : 0;
+    const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+    const trigger = navHeight + sectionNavHeight + 20;
+    const rect = heroSection.getBoundingClientRect();
+    return rect.top <= trigger && rect.bottom > trigger + 40;
+  }
 
-				return 0;
+  if (prevSectionBtn) {
+    prevSectionBtn.addEventListener('click', () => scrollToSection(prevSectionBtn.dataset.target, { forJump: true }));
+  }
+  if (nextSectionBtn) {
+    nextSectionBtn.addEventListener('click', () => {
+      if (isHeroActiveForJump()) {
+        scrollToSection('about', { forJump: true });
+        return;
+      }
+      scrollToSection(nextSectionBtn.dataset.target, { forJump: true });
+    });
+  }
+  if (backToTopBtn) {
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      });
+    });
+  }
 
-			}
-		});
+  function updateActiveSection() {
+    const currentForNav = getCurrentPrimarySectionId();
+    const currentForJump = getCurrentPrimarySectionIdForJump();
+    setActiveLinkState(navLinks, currentForNav);
+    updateSectionProgress();
+    updateSectionJumpControls(currentForJump);
+    updateBackToTop();
+  }
 
-	// Spotlights.
-		$('.spotlights > section')
-			.scrollex({
-				mode: 'middle',
-				top: '-10vh',
-				bottom: '-10vh',
-				initialize: function() {
+  window.addEventListener('scroll', updateActiveSection, { passive: true });
+  window.addEventListener('resize', updateActiveSection, { passive: true });
+  window.addEventListener('hashchange', updateActiveSection);
+  updateActiveSection();
 
-					// Deactivate section.
-						$(this).addClass('inactive');
+  // --- Scroll-triggered fade-in animations ---
+  const fadeElements = document.querySelectorAll('.fade-in-on-scroll');
 
-				},
-				enter: function() {
+  if ('IntersectionObserver' in window) {
+    const fadeObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            fadeObserver.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
 
-					// Activate section.
-						$(this).removeClass('inactive');
+    fadeElements.forEach(el => fadeObserver.observe(el));
+  } else {
+    // Fallback: show everything
+    fadeElements.forEach(el => el.classList.add('visible'));
+  }
 
-				}
-			})
-			.each(function() {
+  // --- Animated counters ---
+  const statNumbers = document.querySelectorAll('.stat-number[data-target]');
 
-				var	$this = $(this),
-					$image = $this.find('.image'),
-					$img = $image.find('img'),
-					x;
+  function animateCounter(element) {
+    const target = parseInt(element.dataset.target, 10);
+    const suffix = element.dataset.suffix || '';
+    const duration = prefersReducedMotion ? 0 : 1500;
+    const startTime = performance.now();
 
-				// Assign image.
-					$image.css('background-image', 'url(' + $img.attr('src') + ')');
+    if (duration === 0) {
+      element.textContent = target + suffix;
+      return;
+    }
 
-				// Set background position.
-					if (x = $img.data('position'))
-						$image.css('background-position', x);
+    function step(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      element.textContent = current + suffix;
 
-				// Hide <img>.
-					$img.hide();
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    }
 
-			});
+    requestAnimationFrame(step);
+  }
 
-	// Features.
-		$('.features')
-			.scrollex({
-				mode: 'middle',
-				top: '-20vh',
-				bottom: '-20vh',
-				initialize: function() {
+  if ('IntersectionObserver' in window) {
+    const counterObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateCounter(entry.target);
+            counterObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
 
-					// Deactivate section.
-						$(this).addClass('inactive');
+    statNumbers.forEach(el => counterObserver.observe(el));
+  } else {
+    statNumbers.forEach(el => {
+      el.textContent = el.dataset.target + (el.dataset.suffix || '');
+    });
+  }
 
-				},
-				enter: function() {
+  // --- Publication card expand/collapse ---
+  function keepPublicationCardInView(card) {
+    if (!card) return;
+    const navHeight = navbar ? navbar.offsetHeight : 0;
+    const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+    const topOffset = navHeight + sectionNavHeight + 22;
+    const rect = card.getBoundingClientRect();
+    const cardOverflowsBottom = rect.bottom > window.innerHeight - 28;
+    const cardAboveTop = rect.top < topOffset;
 
-					// Activate section.
-						$(this).removeClass('inactive');
+    if (!cardOverflowsBottom && !cardAboveTop) return;
 
-				}
-			});
+    const targetY = window.scrollY + rect.top - topOffset;
+    window.scrollTo({
+      top: Math.max(targetY, 0),
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  }
 
-})(jQuery);
+  function closePublicationDetails(card, expandBtn, abstract) {
+    if (abstract.hasAttribute('hidden')) return;
+    const currentHeight = Math.max(abstract.getBoundingClientRect().height, 0);
+    abstract.style.maxHeight = `${currentHeight}px`;
+    abstract.style.overflowY = 'hidden';
+    void abstract.offsetHeight;
+    abstract.style.maxHeight = '0';
+    expandBtn.textContent = 'Show Details';
+    expandBtn.setAttribute('aria-expanded', 'false');
+    card.classList.remove('is-expanded');
+    abstract.addEventListener('transitionend', function handler(event) {
+      if (event.propertyName !== 'max-height') return;
+      if (card.classList.contains('is-expanded')) return;
+      abstract.setAttribute('hidden', '');
+    }, { once: true });
+  }
+
+  function closeExpandedPublicationCardsWithin(categoryRoot) {
+    if (!categoryRoot) return;
+    categoryRoot.querySelectorAll('.publication-card.is-expanded').forEach(openCard => {
+      const otherBtn = openCard.querySelector('.btn-expand');
+      const otherAbstract = openCard.querySelector('.pub-abstract');
+      if (!otherBtn || !otherAbstract) return;
+      closePublicationDetails(openCard, otherBtn, otherAbstract);
+    });
+  }
+
+  function setPublicationAbstractOpenHeight(abstract) {
+    const maxOpenHeight = Math.min(Math.round(window.innerHeight * 0.68), 700);
+    const fullHeight = abstract.scrollHeight;
+    const openHeight = Math.min(fullHeight, maxOpenHeight);
+    abstract.style.maxHeight = `${openHeight}px`;
+    abstract.style.overflowY = fullHeight > openHeight + 2 ? 'auto' : 'hidden';
+  }
+
+  function openPublicationDetails(card, expandBtn, abstract) {
+    const parentGrid = card.closest('.publications-grid');
+    if (parentGrid) {
+      parentGrid.querySelectorAll('.publication-card.is-expanded').forEach(openCard => {
+        if (openCard === card) return;
+        const otherBtn = openCard.querySelector('.btn-expand');
+        const otherAbstract = openCard.querySelector('.pub-abstract');
+        if (!otherBtn || !otherAbstract) return;
+        closePublicationDetails(openCard, otherBtn, otherAbstract);
+      });
+    }
+
+    abstract.removeAttribute('hidden');
+    abstract.style.overflowY = 'hidden';
+    abstract.style.maxHeight = '0';
+    requestAnimationFrame(() => {
+      setPublicationAbstractOpenHeight(abstract);
+    });
+    abstract.addEventListener('transitionend', function handler(event) {
+      if (event.propertyName !== 'max-height') return;
+      if (abstract.hasAttribute('hidden')) return;
+      setPublicationAbstractOpenHeight(abstract);
+      keepPublicationCardInView(card);
+    }, { once: true });
+    card.classList.add('is-expanded');
+    expandBtn.textContent = 'Hide Details';
+    expandBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  document.querySelectorAll('.publication-card').forEach((card, index) => {
+    const expandBtn = card.querySelector('.btn-expand');
+    const abstract = card.querySelector('.pub-abstract');
+    if (!expandBtn || !abstract) return;
+    card.classList.add('has-abstract');
+    card.classList.toggle('is-expanded', !abstract.hasAttribute('hidden'));
+    if (!abstract.id) {
+      abstract.id = `pub-abstract-${index + 1}`;
+    }
+    expandBtn.setAttribute('aria-controls', abstract.id);
+
+    expandBtn.addEventListener('click', () => {
+      const isHidden = abstract.hasAttribute('hidden');
+      publicationAccordionPauseUntil = Date.now() + (isHidden ? 1200 : 700);
+
+      if (isHidden) {
+        openPublicationDetails(card, expandBtn, abstract);
+      } else {
+        closePublicationDetails(card, expandBtn, abstract);
+      }
+    });
+  });
+
+  // --- Research categories: scroll-aware accordion ---
+  const researchSection = document.getElementById('research');
+  const researchCategories = researchSection
+    ? Array.from(researchSection.querySelectorAll('.research-category'))
+    : [];
+  const researchChips = researchSection
+    ? Array.from(researchSection.querySelectorAll('.section-chip[href^="#research-"]'))
+    : [];
+
+  if (researchCategories.length > 1) {
+    let activeResearchIndex = 0;
+    let suppressAutoUntil = 0;
+    let lastScrollY = window.scrollY;
+    let lastScrollDirection = 1;
+    let lastSwitchScrollY = window.scrollY;
+    let researchScrollLockUntil = 0;
+    let researchScrollUnlockTimer = null;
+
+    const lockedScrollKeys = new Set([
+      'ArrowUp',
+      'ArrowDown',
+      'PageUp',
+      'PageDown',
+      'Home',
+      'End',
+      ' ',
+    ]);
+
+    function getResearchGrid(category) {
+      return category.querySelector('.publications-grid');
+    }
+
+    function setResearchGridState(category, expand, options = {}) {
+      const { immediate = false } = options;
+      const grid = getResearchGrid(category);
+      if (!grid) return;
+
+      category.classList.toggle('is-expanded', expand);
+      category.classList.toggle('is-collapsed', !expand);
+
+      if (expand) {
+        grid.removeAttribute('hidden');
+        if (immediate || prefersReducedMotion) {
+          grid.style.maxHeight = 'none';
+          grid.style.opacity = '1';
+          return;
+        }
+        grid.style.maxHeight = '0';
+        grid.style.opacity = '0';
+        requestAnimationFrame(() => {
+          grid.style.maxHeight = `${grid.scrollHeight}px`;
+          grid.style.opacity = '1';
+        });
+        grid.addEventListener('transitionend', function handler(event) {
+          if (event.propertyName !== 'max-height') return;
+          if (!category.classList.contains('is-expanded')) return;
+          grid.style.maxHeight = 'none';
+        }, { once: true });
+      } else {
+        if (immediate || prefersReducedMotion) {
+          grid.style.maxHeight = '0';
+          grid.style.opacity = '0';
+          grid.setAttribute('hidden', '');
+          return;
+        }
+        if (grid.style.maxHeight === 'none' || !grid.style.maxHeight) {
+          grid.style.maxHeight = `${grid.scrollHeight}px`;
+          void grid.offsetHeight;
+        }
+        grid.style.maxHeight = '0';
+        grid.style.opacity = '0';
+        grid.addEventListener('transitionend', function handler(event) {
+          if (event.propertyName !== 'max-height') return;
+          if (category.classList.contains('is-expanded')) return;
+          grid.setAttribute('hidden', '');
+        }, { once: true });
+      }
+    }
+
+    function getResearchIndexById(categoryId) {
+      return researchCategories.findIndex(category => category.id === categoryId);
+    }
+
+    function setResearchChipState(index) {
+      const id = researchCategories[index] ? researchCategories[index].id : '';
+      setActiveLinkState(researchChips, id);
+    }
+
+    function syncHeadingExpandedState() {
+      researchCategories.forEach((category, index) => {
+        const heading = category.querySelector('.category-title');
+        if (!heading) return;
+        heading.setAttribute('aria-expanded', index === activeResearchIndex ? 'true' : 'false');
+      });
+    }
+
+    function suppressAutoAccordion(duration = 500) {
+      suppressAutoUntil = Date.now() + duration;
+    }
+
+    function isResearchScrollLocked() {
+      return Date.now() < researchScrollLockUntil;
+    }
+
+    function clearResearchScrollLock() {
+      researchScrollLockUntil = 0;
+      if (researchScrollUnlockTimer) {
+        clearTimeout(researchScrollUnlockTimer);
+        researchScrollUnlockTimer = null;
+      }
+      document.body.classList.remove('research-scroll-lock');
+    }
+
+    function pauseResearchAutoForNavigation(duration = 2200) {
+      clearResearchScrollLock();
+      suppressAutoAccordion(duration);
+    }
+
+    function lockResearchUserScroll(duration = 1300) {
+      const now = Date.now();
+      researchScrollLockUntil = Math.max(researchScrollLockUntil, now + duration);
+
+      if (!document.body.classList.contains('research-scroll-lock')) {
+        document.body.classList.add('research-scroll-lock');
+      }
+
+      if (researchScrollUnlockTimer) {
+        clearTimeout(researchScrollUnlockTimer);
+      }
+
+      researchScrollUnlockTimer = window.setTimeout(() => {
+        if (Date.now() >= researchScrollLockUntil) {
+          document.body.classList.remove('research-scroll-lock');
+        }
+      }, duration + 24);
+    }
+
+    function scrollResearchCategoryToTop(category, smooth = true) {
+      if (!category) return;
+      const navHeight = navbar ? navbar.offsetHeight : 0;
+      const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+      const offset = navHeight + sectionNavHeight + 16;
+      const targetY = window.scrollY + category.getBoundingClientRect().top - offset;
+      window.scrollTo({
+        top: Math.max(targetY, 0),
+        behavior: smooth && !prefersReducedMotion ? 'smooth' : 'auto',
+      });
+      lastSwitchScrollY = window.scrollY;
+      lastScrollY = window.scrollY;
+    }
+
+    function flashResearchCategory(category) {
+      if (!category) return;
+      category.classList.remove('is-attention');
+      // Restart animation if quickly re-selected.
+      void category.offsetWidth;
+      category.classList.add('is-attention');
+      window.setTimeout(() => {
+        category.classList.remove('is-attention');
+      }, 780);
+    }
+
+    function alignViewportToCategory(category, options = {}) {
+      const { smooth = true, highlight = false } = options;
+      const lockDuration = smooth ? 2100 : 1300;
+      suppressAutoAccordion(lockDuration);
+      lockResearchUserScroll(lockDuration);
+      requestAnimationFrame(() => {
+        scrollResearchCategoryToTop(category, smooth);
+        // Re-align after accordion transition settles.
+        setTimeout(() => scrollResearchCategoryToTop(category, false), 360);
+        if (highlight) {
+          flashResearchCategory(category);
+        }
+      });
+    }
+
+    function activateResearchIndex(nextIndex, options = {}) {
+      const { immediate = false, force = false, alignViewport = false, smoothScroll = true, highlight = false } = options;
+      const boundedIndex = Math.max(0, Math.min(researchCategories.length - 1, nextIndex));
+      const targetCategory = researchCategories[boundedIndex];
+      if (!targetCategory) return;
+
+      if (!force && boundedIndex === activeResearchIndex) {
+        setResearchChipState(activeResearchIndex);
+        syncHeadingExpandedState();
+        if (alignViewport) {
+          alignViewportToCategory(targetCategory, { smooth: smoothScroll, highlight });
+        } else if (highlight) {
+          flashResearchCategory(targetCategory);
+        }
+        return;
+      }
+
+      const applyState = () => {
+        // Prevent expanded details from creating large hidden layouts while scrolling
+        // across research categories.
+        researchCategories.forEach(closeExpandedPublicationCardsWithin);
+        researchCategories.forEach((category, index) => {
+          setResearchGridState(category, index === boundedIndex, { immediate });
+        });
+        activeResearchIndex = boundedIndex;
+        setResearchChipState(activeResearchIndex);
+        syncHeadingExpandedState();
+        lastSwitchScrollY = window.scrollY;
+      };
+
+      applyState();
+
+      if (alignViewport) {
+        alignViewportToCategory(targetCategory, { smooth: smoothScroll, highlight });
+      } else if (highlight) {
+        flashResearchCategory(targetCategory);
+      }
+    }
+
+    function updateScrollDirection() {
+      const currentY = window.scrollY;
+      if (Math.abs(currentY - lastScrollY) > 2) {
+        lastScrollDirection = currentY > lastScrollY ? 1 : -1;
+        lastScrollY = currentY;
+      }
+    }
+
+    function maybeUpdateResearchAccordion() {
+      if (Date.now() < suppressAutoUntil) return;
+      if (!researchSection) return;
+      if (Date.now() < publicationAccordionPauseUntil) return;
+
+      const sectionRect = researchSection.getBoundingClientRect();
+      if (sectionRect.bottom < 120 || sectionRect.top > window.innerHeight * 0.82) return;
+
+      updateScrollDirection();
+      const navHeight = navbar ? navbar.offsetHeight : 0;
+      const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+      const triggerTop = navHeight + sectionNavHeight + 110;
+      const movedSinceSwitch = Math.abs(window.scrollY - lastSwitchScrollY) > 90;
+
+      if (!movedSinceSwitch) {
+        setResearchChipState(activeResearchIndex);
+        return;
+      }
+
+      if (lastScrollDirection > 0 && activeResearchIndex < researchCategories.length - 1) {
+        const nextCategory = researchCategories[activeResearchIndex + 1];
+        const nextTop = nextCategory.getBoundingClientRect().top;
+        if (nextTop <= triggerTop) {
+          suppressAutoAccordion(300);
+          activateResearchIndex(activeResearchIndex + 1, {
+            immediate: false,
+            force: true,
+            alignViewport: true,
+            smoothScroll: false,
+            highlight: true
+          });
+          return;
+        }
+      }
+
+      if (lastScrollDirection < 0 && activeResearchIndex > 0) {
+        const currentCategory = researchCategories[activeResearchIndex];
+        const currentTop = currentCategory.getBoundingClientRect().top;
+        if (currentTop > triggerTop + 120) {
+          suppressAutoAccordion(300);
+          activateResearchIndex(activeResearchIndex - 1, {
+            immediate: false,
+            force: true,
+            alignViewport: true,
+            smoothScroll: false,
+            highlight: true
+          });
+          return;
+        }
+      }
+
+      setResearchChipState(activeResearchIndex);
+    }
+
+    const hashCategoryId = window.location.hash.replace('#', '');
+    const hashIndex = getResearchIndexById(hashCategoryId);
+    const initialIndex = hashIndex >= 0 ? hashIndex : 0;
+    activateResearchIndex(initialIndex, { immediate: true, force: true });
+
+    researchChips.forEach(chip => {
+      chip.addEventListener('click', (event) => {
+        event.preventDefault();
+        const targetId = chip.getAttribute('href').replace('#', '');
+        const targetIndex = getResearchIndexById(targetId);
+        if (targetIndex < 0) return;
+        if (window.location.hash !== `#${targetId}`) {
+          history.replaceState(null, '', `#${targetId}`);
+        }
+        suppressAutoAccordion(1000);
+        activateResearchIndex(targetIndex, {
+          immediate: false,
+          force: true,
+          alignViewport: true,
+          smoothScroll: true,
+          highlight: true
+        });
+      });
+    });
+
+    researchCategories.forEach((category, index) => {
+      const heading = category.querySelector('.category-title');
+      const grid = getResearchGrid(category);
+      if (!heading) return;
+      if (grid && !grid.id) {
+        grid.id = `research-grid-${index + 1}`;
+      }
+      heading.setAttribute('tabindex', '0');
+      heading.setAttribute('role', 'button');
+      if (grid && grid.id) {
+        heading.setAttribute('aria-controls', grid.id);
+      }
+      heading.setAttribute('aria-expanded', index === activeResearchIndex ? 'true' : 'false');
+      heading.classList.add('is-clickable');
+
+      heading.addEventListener('click', () => {
+        if (window.location.hash !== `#${category.id}`) {
+          history.replaceState(null, '', `#${category.id}`);
+        }
+        suppressAutoAccordion(1000);
+        activateResearchIndex(index, {
+          immediate: false,
+          force: true,
+          alignViewport: true,
+          smoothScroll: true,
+          highlight: true
+        });
+      });
+
+      heading.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        if (window.location.hash !== `#${category.id}`) {
+          history.replaceState(null, '', `#${category.id}`);
+        }
+        suppressAutoAccordion(1000);
+        activateResearchIndex(index, {
+          immediate: false,
+          force: true,
+          alignViewport: true,
+          smoothScroll: true,
+          highlight: true
+        });
+      });
+    });
+
+    window.addEventListener('hashchange', () => {
+      const targetId = window.location.hash.replace('#', '');
+      if (targetId === 'research') {
+        pauseResearchAutoForNavigation(2400);
+        activateResearchIndex(0, { immediate: true, force: true });
+        return;
+      }
+      const targetIndex = getResearchIndexById(targetId);
+      if (targetIndex < 0) {
+        pauseResearchAutoForNavigation(2400);
+        return;
+      }
+      suppressAutoAccordion(1200);
+      activateResearchIndex(targetIndex, {
+        immediate: true,
+        force: true,
+        alignViewport: true,
+        smoothScroll: false
+      });
+    });
+
+    window.addEventListener('scroll', maybeUpdateResearchAccordion, { passive: true });
+
+    window.addEventListener('resize', () => {
+      researchCategories.forEach(category => {
+        const grid = getResearchGrid(category);
+        if (!grid) return;
+        if (category.classList.contains('is-expanded')) {
+          grid.removeAttribute('hidden');
+          grid.style.maxHeight = 'none';
+          grid.style.opacity = '1';
+        } else {
+          grid.style.maxHeight = '0';
+          grid.style.opacity = '0';
+          grid.setAttribute('hidden', '');
+        }
+      });
+      maybeUpdateResearchAccordion();
+    }, { passive: true });
+
+    maybeUpdateResearchAccordion();
+
+    const preventLockedScroll = (event) => {
+      if (!isResearchScrollLocked()) return;
+      event.preventDefault();
+    };
+
+    const preventLockedScrollKeys = (event) => {
+      if (!isResearchScrollLocked()) return;
+      if (!lockedScrollKeys.has(event.key)) return;
+      const target = event.target;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return;
+      }
+      event.preventDefault();
+    };
+
+    window.addEventListener('wheel', preventLockedScroll, { passive: false });
+    window.addEventListener('touchmove', preventLockedScroll, { passive: false });
+    window.addEventListener('keydown', preventLockedScrollKeys, { passive: false });
+
+    // If user clicks a non-research anchor (e.g., navbar links to sections after Research),
+    // temporarily disable research auto-scroll logic so navigation can complete cleanly.
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', () => {
+        const href = anchor.getAttribute('href');
+        if (!href) return;
+        const targetId = href.replace('#', '');
+        if (!targetId) return;
+        if (targetId === 'research') {
+          pauseResearchAutoForNavigation(2400);
+          activateResearchIndex(0, { immediate: true, force: true });
+          return;
+        }
+        if (targetId.startsWith('research-')) return;
+        pauseResearchAutoForNavigation(2400);
+      });
+    });
+
+    // Same protection for floating section jump buttons (Previous / Next).
+    [prevSectionBtn, nextSectionBtn].forEach(button => {
+      if (!button) return;
+      button.addEventListener('click', () => {
+        const targetId = button.dataset.target || '';
+        if (!targetId) return;
+        if (targetId === 'research') {
+          pauseResearchAutoForNavigation(2400);
+          activateResearchIndex(0, { immediate: true, force: true });
+          return;
+        }
+        if (targetId.startsWith('research-')) return;
+        pauseResearchAutoForNavigation(2400);
+      });
+    });
+
+    if (backToTopBtn) {
+      backToTopBtn.addEventListener('click', () => {
+        clearResearchScrollLock();
+        pauseResearchAutoForNavigation(5200);
+      }, { capture: true });
+    }
+  }
+
+  // --- Teaching course card expand/collapse ---
+  document.querySelectorAll('.course-card').forEach((card, index) => {
+    const toggle = card.querySelector('.course-toggle');
+    const details = card.querySelector('.course-details');
+    if (!toggle || !details) return;
+    const closedLabel = 'Course Description';
+    const openLabel = 'Hide Course Description';
+
+    if (!details.id) {
+      details.id = `course-details-${index + 1}`;
+    }
+    toggle.setAttribute('aria-controls', details.id);
+
+    const isInitiallyOpen = !details.hasAttribute('hidden');
+    card.classList.toggle('is-open', isInitiallyOpen);
+    toggle.setAttribute('aria-expanded', isInitiallyOpen ? 'true' : 'false');
+    toggle.textContent = isInitiallyOpen ? openLabel : closedLabel;
+
+    toggle.addEventListener('click', () => {
+      const isHidden = details.hasAttribute('hidden');
+
+      if (isHidden) {
+        details.removeAttribute('hidden');
+        card.classList.add('is-open');
+        if (prefersReducedMotion) {
+          details.style.maxHeight = 'none';
+          toggle.setAttribute('aria-expanded', 'true');
+          toggle.textContent = openLabel;
+          return;
+        }
+        details.style.maxHeight = '0';
+        requestAnimationFrame(() => {
+          details.style.maxHeight = `${details.scrollHeight}px`;
+        });
+        details.addEventListener('transitionend', function handler(event) {
+          if (event.propertyName !== 'max-height') return;
+          if (details.hasAttribute('hidden')) return;
+          details.style.maxHeight = 'none';
+        }, { once: true });
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.textContent = openLabel;
+      } else {
+        if (prefersReducedMotion) {
+          details.style.maxHeight = '0';
+          details.setAttribute('hidden', '');
+          card.classList.remove('is-open');
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.textContent = closedLabel;
+          return;
+        }
+        if (details.style.maxHeight === 'none' || !details.style.maxHeight) {
+          details.style.maxHeight = `${details.scrollHeight}px`;
+          void details.offsetHeight;
+        }
+        details.style.maxHeight = '0';
+        card.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.textContent = closedLabel;
+        details.addEventListener('transitionend', function handler(event) {
+          if (event.propertyName !== 'max-height') return;
+          if (card.classList.contains('is-open')) return;
+          details.setAttribute('hidden', '');
+        }, { once: true });
+      }
+    });
+  });
+
+  // --- Teaching subsection chip highlighting ---
+  const teachingSection = document.getElementById('teaching');
+  const teachingChipNav = teachingSection
+    ? teachingSection.querySelector('.teaching-chips')
+    : null;
+  const teachingChips = teachingSection
+    ? Array.from(teachingSection.querySelectorAll('.teaching-chips .section-chip[href^="#teaching-"]'))
+    : [];
+  const teachingTargets = teachingChips
+    .map(chip => {
+      const id = chip.getAttribute('href').replace('#', '');
+      return document.getElementById(id);
+    })
+    .filter(Boolean);
+
+  if (teachingSection && teachingChipNav && teachingChips.length > 0 && teachingTargets.length > 0) {
+    function updateTeachingChipState() {
+      const navHeight = navbar ? navbar.offsetHeight : 0;
+      const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
+      const triggerLine = navHeight + sectionNavHeight + 84;
+      const sectionRect = teachingSection.getBoundingClientRect();
+      const sectionIsActive = sectionRect.top < window.innerHeight * 0.68
+        && sectionRect.bottom > triggerLine + 24;
+
+      if (!sectionIsActive) {
+        setActiveLinkState(teachingChips, '');
+        return;
+      }
+
+      let currentId = '';
+      const firstTop = teachingTargets[0].getBoundingClientRect().top;
+      if (firstTop <= triggerLine + 8) {
+        currentId = teachingTargets[0].id;
+      }
+
+      teachingTargets.forEach((target, index) => {
+        if (index === 0) return;
+        if (target.getBoundingClientRect().top <= triggerLine + 18) {
+          currentId = target.id;
+        }
+      });
+
+      setActiveLinkState(teachingChips, currentId);
+    }
+
+    window.addEventListener('scroll', updateTeachingChipState, { passive: true });
+    window.addEventListener('resize', updateTeachingChipState, { passive: true });
+    window.addEventListener('hashchange', updateTeachingChipState);
+    updateTeachingChipState();
+  }
+
+  // --- Slide card expand/collapse ---
+  document.querySelectorAll('.slide-card-expandable').forEach((card, index) => {
+    const toggle = card.querySelector('.slide-card-toggle');
+    const embed = card.querySelector('.slide-embed');
+    if (!toggle || !embed) return;
+    if (!embed.id) {
+      embed.id = `slide-embed-${index + 1}`;
+    }
+    toggle.setAttribute('aria-controls', embed.id);
+
+    toggle.addEventListener('click', () => {
+      const isHidden = embed.hasAttribute('hidden');
+
+      if (isHidden) {
+        // Lazy-load iframe
+        const iframe = embed.querySelector('iframe');
+        if (iframe && iframe.dataset.src && !iframe.src) {
+          iframe.src = iframe.dataset.src;
+        }
+        card.classList.add('is-open');
+        embed.removeAttribute('hidden');
+        embed.style.maxHeight = '0';
+        requestAnimationFrame(() => {
+          embed.style.maxHeight = embed.scrollHeight + 'px';
+        });
+        embed.addEventListener('transitionend', function handler(event) {
+          if (event.propertyName !== 'max-height') return;
+          if (embed.hasAttribute('hidden')) return;
+          embed.style.maxHeight = 'none';
+        }, { once: true });
+        toggle.setAttribute('aria-expanded', 'true');
+      } else {
+        card.classList.remove('is-open');
+        if (embed.style.maxHeight === 'none') {
+          embed.style.maxHeight = embed.scrollHeight + 'px';
+          void embed.offsetHeight;
+        }
+        embed.style.maxHeight = '0';
+        toggle.setAttribute('aria-expanded', 'false');
+        embed.addEventListener('transitionend', function handler(event) {
+          if (event.propertyName !== 'max-height') return;
+          embed.setAttribute('hidden', '');
+        }, { once: true });
+      }
+    });
+  });
+
+  // --- Keyboard navigation ---
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navMenu && navMenu.classList.contains('active')) {
+      e.preventDefault();
+      closeMenu(true);
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      trapFocusInMenu(e);
+    }
+  });
+
+})();

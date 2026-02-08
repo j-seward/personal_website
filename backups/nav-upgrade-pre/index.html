@@ -24,21 +24,14 @@
   <nav class="navbar" id="navbar">
     <div class="nav-container">
       <a href="#hero" class="nav-logo">JAS</a>
-      <div class="nav-menu" id="nav-menu">
-        <ul class="nav-menu-primary">
-          <li><a href="#about" class="nav-link">About</a></li>
-          <li><a href="#research" class="nav-link">Research</a></li>
-          <li><a href="#teaching" class="nav-link">Teaching</a></li>
-          <li><a href="#experience" class="nav-link">Experience</a></li>
-          <li><a href="#contact" class="nav-link">Contact</a></li>
-          <li><a href="assets/seward_cv.pdf" class="nav-link nav-cv nav-cv-desktop" target="_blank" rel="noopener noreferrer">CV</a></li>
-        </ul>
-        <div class="nav-menu-secondary" aria-label="Secondary links">
-          <a href="assets/seward_cv.pdf" class="nav-secondary-link nav-secondary-cv" target="_blank" rel="noopener noreferrer">Download CV</a>
-          <a href="https://scholar.google.com/citations?user=mB7yJ8IAAAAJ&hl=en" class="nav-secondary-link" target="_blank" rel="noopener noreferrer">Google Scholar</a>
-          <a href="https://github.com/j-seward" class="nav-secondary-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-      </div>
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#research" class="nav-link">Research</a></li>
+        <li><a href="#teaching" class="nav-link">Teaching</a></li>
+        <li><a href="#experience" class="nav-link">Experience</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+        <li><a href="assets/seward_cv.pdf" class="nav-link nav-cv" target="_blank" rel="noopener noreferrer">CV</a></li>
+      </ul>
       <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="nav-menu">
         <span></span>
         <span></span>
@@ -55,7 +48,7 @@
       <div class="hero-card">
         <div class="hero-card-inner">
           <div class="hero-image-wrapper">
-            <img src="assets/img/headshot.jpg" alt="Jonathan A. Seward, professional headshot" class="hero-image" width="260" height="260" decoding="async">
+            <img src="assets/img/headshot.jpg" alt="Jonathan A. Seward, professional headshot" class="hero-image">
           </div>
           <div class="hero-text">
             <p class="hero-greeting">Hello, I'm</p>
@@ -83,14 +76,6 @@
 
   <!-- Main Content -->
   <main id="main-content" tabindex="-1">
-
-    <nav class="section-nav" id="section-nav" aria-label="Page sections">
-      <div class="container section-nav-inner">
-        <div class="section-progress" aria-hidden="true">
-          <span id="section-progress-bar"></span>
-        </div>
-      </div>
-    </nav>
 
     <!-- About Section -->
     <section id="about" class="section about-section">
@@ -137,17 +122,12 @@
     </section>
 
     <!-- Research Section -->
-    <section id="research" class="section research-section section-brand-tint">
+    <section id="research" class="section research-section section-navy-tint">
       <div class="container">
         <h2 class="section-title fade-in-on-scroll">Research</h2>
-        <nav class="section-chips fade-in-on-scroll" aria-label="Research subsections">
-          <a href="#research-publications" class="section-chip">Publications</a>
-          <a href="#research-working-papers" class="section-chip">Working Papers</a>
-          <a href="#research-wip" class="section-chip">Work in Progress</a>
-        </nav>
 
         <!-- Publications -->
-        <div id="research-publications" class="research-category fade-in-on-scroll anchor-target">
+        <div class="research-category fade-in-on-scroll">
           <h3 class="category-title">
             <span class="category-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
@@ -292,7 +272,7 @@
         </div>
 
         <!-- Working Papers -->
-        <div id="research-working-papers" class="research-category fade-in-on-scroll anchor-target">
+        <div class="research-category fade-in-on-scroll">
           <h3 class="category-title">
             <span class="category-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -321,7 +301,7 @@
                 <h4 class="pub-title">Synthetic Controls in Impact Evaluation</h4>
                 <div class="pub-venue">
                   <span class="pub-journal">Oxford Handbook of Impact Evaluation</span>
-                  <span class="pub-year">Draft</span>
+                  <span class="pub-year">Forthcoming</span>
                 </div>
                 <p class="pub-authors">with Scott Cunningham</p>
               </div>
@@ -336,7 +316,7 @@
         </div>
 
         <!-- Work in Progress -->
-        <div id="research-wip" class="research-category fade-in-on-scroll anchor-target">
+        <div class="research-category fade-in-on-scroll">
           <h3 class="category-title">
             <span class="category-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -399,13 +379,8 @@
       <div class="container">
         <h2 class="section-title fade-in-on-scroll">Teaching</h2>
         <p class="section-intro fade-in-on-scroll">I teach undergraduate and graduate courses in health economics and policy at Baylor University. My supply and demand courses are cross-listed so that undergraduates and PhD students learn side by side, with a shared emphasis on modern causal inference methods.</p>
-        <nav class="section-chips teaching-chips fade-in-on-scroll" aria-label="Teaching subsections">
-          <a href="#teaching-courses" class="section-chip">Courses</a>
-          <a href="#teaching-lectures" class="section-chip">Lecture Materials</a>
-          <!-- <a href="#teaching-advising" class="section-chip">Thesis Supervision</a> -->
-        </nav>
 
-        <div id="teaching-courses" class="courses-grid anchor-target">
+        <div class="courses-grid">
 
           <div class="course-card fade-in-on-scroll">
             <div class="course-icon">
@@ -415,15 +390,12 @@
               <h3 class="course-title">Health Economics &amp; Policy: Demand</h3>
               <span class="course-code">ECO 4390 / HSR 6315</span>
             </div>
-            <button class="course-toggle" type="button" aria-expanded="false">Course Description</button>
-            <div class="course-details" hidden>
-              <p class="course-description">Examines the demand side of healthcare markets: health insurance design, moral hazard, adverse selection, the demand for medical care, and the economics of health behaviors. Students learn to evaluate health policies using causal inference frameworks.</p>
-              <div class="course-topics">
-                <span class="topic-tag">Health Insurance</span>
-                <span class="topic-tag">Moral Hazard</span>
-                <span class="topic-tag">Adverse Selection</span>
-                <span class="topic-tag">Causal Inference</span>
-              </div>
+            <p class="course-description">Examines the demand side of healthcare markets: health insurance design, moral hazard, adverse selection, the demand for medical care, and the economics of health behaviors. Students learn to evaluate health policies using causal inference frameworks.</p>
+            <div class="course-topics">
+              <span class="topic-tag">Health Insurance</span>
+              <span class="topic-tag">Moral Hazard</span>
+              <span class="topic-tag">Adverse Selection</span>
+              <span class="topic-tag">Causal Inference</span>
             </div>
           </div>
 
@@ -435,15 +407,12 @@
               <h3 class="course-title">Health Economics &amp; Policy: Supply</h3>
               <span class="course-code">ECO 4390 / HSR 6320</span>
             </div>
-            <button class="course-toggle" type="button" aria-expanded="false">Course Description</button>
-            <div class="course-details" hidden>
-              <p class="course-description">Focuses on the supply side: physician and hospital markets, vertical integration, payment systems, provider competition, and quality measurement. Emphasizes empirical methods including instrumental variables, regression discontinuity, and difference-in-differences.</p>
-              <div class="course-topics">
-                <span class="topic-tag">Physician Markets</span>
-                <span class="topic-tag">Hospital Competition</span>
-                <span class="topic-tag">Vertical Integration</span>
-                <span class="topic-tag">Payment Systems</span>
-              </div>
+            <p class="course-description">Focuses on the supply side: physician and hospital markets, vertical integration, payment systems, provider competition, and quality measurement. Emphasizes empirical methods including instrumental variables, regression discontinuity, and difference-in-differences.</p>
+            <div class="course-topics">
+              <span class="topic-tag">Physician Markets</span>
+              <span class="topic-tag">Hospital Competition</span>
+              <span class="topic-tag">Vertical Integration</span>
+              <span class="topic-tag">Payment Systems</span>
             </div>
           </div>
 
@@ -455,41 +424,21 @@
               <h3 class="course-title">Health Economics (MBA)</h3>
               <span class="course-code">ECO / HPA 5350</span>
             </div>
-            <button class="course-toggle" type="button" aria-expanded="false">Course Description</button>
-            <div class="course-details" hidden>
-              <p class="course-description">An applied course for MBA students covering the economic forces shaping healthcare delivery, insurance markets, pharmaceutical pricing, and health policy&mdash;designed for future healthcare leaders and managers.</p>
-              <div class="course-topics">
-                <span class="topic-tag">Healthcare Delivery</span>
-                <span class="topic-tag">Policy Analysis</span>
-                <span class="topic-tag">Applied Economics</span>
-              </div>
+            <p class="course-description">An applied course for MBA students covering the economic forces shaping healthcare delivery, insurance markets, pharmaceutical pricing, and health policy&mdash;designed for future healthcare leaders and managers.</p>
+            <div class="course-topics">
+              <span class="topic-tag">Healthcare Delivery</span>
+              <span class="topic-tag">Policy Analysis</span>
+              <span class="topic-tag">Applied Economics</span>
             </div>
           </div>
 
         </div>
 
         <!-- Causal Inference Slides -->
-        <div id="teaching-lectures" class="slides-section fade-in-on-scroll anchor-target">
+        <div class="slides-section fade-in-on-scroll">
           <h3 class="subsection-title">Causal Inference Lecture Materials</h3>
           <p class="subsection-intro">Interactive slide decks from my health economics courses. These cover the core causal inference methods used in modern empirical health economics research.</p>
           <div class="slides-grid">
-
-            <div class="slide-card-expandable">
-              <button class="slide-card-toggle" aria-expanded="false">
-                <div class="slide-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                </div>
-                <div>
-                  <h4>Causal Foundations</h4>
-                  <p>Core assumptions, potential outcomes, and identification logic</p>
-                </div>
-                <svg class="slide-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </button>
-              <div class="slide-embed" hidden>
-                <iframe data-src="slides/01_causal_foundation.html" title="Causal Foundations slides" loading="lazy"></iframe>
-                <a href="slides/01_causal_foundation.html" target="_blank" rel="noopener noreferrer" class="slide-fullscreen">Open fullscreen</a>
-              </div>
-            </div>
 
             <div class="slide-card-expandable">
               <button class="slide-card-toggle" aria-expanded="false">
@@ -503,7 +452,7 @@
                 <svg class="slide-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
               <div class="slide-embed" hidden>
-                <iframe data-src="slides/02_unconfoundedness.html" title="Unconfoundedness slides" loading="lazy"></iframe>
+                <iframe data-src="slides/02_unconfoundedness.html" title="Unconfoundedness slides"></iframe>
                 <a href="slides/02_unconfoundedness.html" target="_blank" rel="noopener noreferrer" class="slide-fullscreen">Open fullscreen</a>
               </div>
             </div>
@@ -520,7 +469,7 @@
                 <svg class="slide-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
               <div class="slide-embed" hidden>
-                <iframe data-src="slides/03_instrumental_variables.html" title="Instrumental Variables slides" loading="lazy"></iframe>
+                <iframe data-src="slides/03_instrumental_variables.html" title="Instrumental Variables slides"></iframe>
                 <a href="slides/03_instrumental_variables.html" target="_blank" rel="noopener noreferrer" class="slide-fullscreen">Open fullscreen</a>
               </div>
             </div>
@@ -537,7 +486,7 @@
                 <svg class="slide-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
               <div class="slide-embed" hidden>
-                <iframe data-src="slides/04_rdd.html" title="Regression Discontinuity slides" loading="lazy"></iframe>
+                <iframe data-src="slides/04_rdd.html" title="Regression Discontinuity slides"></iframe>
                 <a href="slides/04_rdd.html" target="_blank" rel="noopener noreferrer" class="slide-fullscreen">Open fullscreen</a>
               </div>
             </div>
@@ -554,7 +503,7 @@
                 <svg class="slide-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
               <div class="slide-embed" hidden>
-                <iframe data-src="slides/05_did.html" title="Difference-in-Differences slides" loading="lazy"></iframe>
+                <iframe data-src="slides/05_did.html" title="Difference-in-Differences slides"></iframe>
                 <a href="slides/05_did.html" target="_blank" rel="noopener noreferrer" class="slide-fullscreen">Open fullscreen</a>
               </div>
             </div>
@@ -562,18 +511,16 @@
           </div>
         </div>
 
-        <!--
-        <div id="teaching-advising" class="teaching-note fade-in-on-scroll anchor-target">
+        <div class="teaching-note fade-in-on-scroll">
           <h3>Thesis Supervision</h3>
-          <p>I advise students on honors theses and doctoral dissertations in health economics and policy. Example topics include GLP-1 receptor agonists and surgical risk, midwife scope-of-practice expansion, and how Medicare policy changes shift site-of-care decisions.</p>
+          <p>I advise undergraduate honors theses in health economics and policy and mentor doctoral research. Current projects include GLP-1 receptor agonists and surgical risk, midwife scope-of-practice expansion, and a dissertation chapter on how Medicare policy changes shift site-of-care decisions.</p>
         </div>
-        -->
 
       </div>
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" class="section experience-section section-brand-tint">
+    <section id="experience" class="section experience-section section-navy-tint">
       <div class="container">
         <h2 class="section-title fade-in-on-scroll">Experience &amp; Education</h2>
 
@@ -729,17 +676,7 @@
       </div>
     </section>
 
-    <nav class="section-jump" id="section-jump" aria-label="Section controls">
-      <button type="button" class="section-jump-btn" id="prev-section" data-target="" aria-label="Go to previous section">Previous</button>
-      <button type="button" class="section-jump-btn" id="next-section" data-target="" aria-label="Go to next section">Next</button>
-    </nav>
-
   </main>
-
-  <button type="button" class="back-to-top" id="back-to-top" aria-label="Back to top" aria-hidden="true">
-    <span aria-hidden="true">&uarr;</span>
-    <span>Top</span>
-  </button>
 
   <!-- Footer -->
   <footer class="footer">
