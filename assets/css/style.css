@@ -161,10 +161,6 @@ body.menu-open::before {
   opacity: 1;
 }
 
-body.research-scroll-lock {
-  overscroll-behavior: none;
-}
-
 img {
   max-width: 100%;
   height: auto;
@@ -1269,43 +1265,6 @@ body.menu-open .back-to-top {
 
 .research-category {
   margin-bottom: 3rem;
-  transition: filter var(--duration-normal) var(--ease-out);
-}
-
-.research-category .publications-grid {
-  overflow: hidden;
-  max-height: none;
-  opacity: 1;
-  transition: max-height var(--duration-slow) var(--ease-out),
-              opacity var(--duration-normal) var(--ease-out);
-}
-
-.research-category.is-collapsed .publications-grid {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.research-category.is-expanded .category-title {
-  border-bottom-color: rgba(197, 165, 90, 0.35);
-}
-
-.research-category.is-attention .category-title {
-  animation: categoryPulse 0.78s var(--ease-out) 1;
-}
-
-@keyframes categoryPulse {
-  0% {
-    border-bottom-color: rgba(197, 165, 90, 0.35);
-    text-shadow: none;
-  }
-  35% {
-    border-bottom-color: rgba(197, 165, 90, 0.92);
-    text-shadow: 0 0 10px rgba(197, 165, 90, 0.18);
-  }
-  100% {
-    border-bottom-color: rgba(197, 165, 90, 0.35);
-    text-shadow: none;
-  }
 }
 
 .category-title {
@@ -1319,17 +1278,6 @@ body.menu-open .back-to-top {
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--gray-200);
-}
-
-.category-title.is-clickable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.category-title.is-clickable:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 4px;
-  border-radius: 4px;
 }
 
 .category-icon {

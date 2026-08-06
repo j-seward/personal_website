@@ -531,7 +531,7 @@
     });
   });
 
-  // --- Research categories: scroll-aware accordion ---
+  // --- Research subsections: flat layout with simple chip jump-links ---
   const researchSection = document.getElementById('research');
   const researchCategories = researchSection
     ? Array.from(researchSection.querySelectorAll('.research-category'))
@@ -540,279 +540,32 @@
     ? Array.from(researchSection.querySelectorAll('.section-chip[href^="#research-"]'))
     : [];
 
-  if (researchCategories.length > 1) {
-    let activeResearchIndex = 0;
-    let suppressAutoUntil = 0;
-    let lastScrollY = window.scrollY;
-    let lastScrollDirection = 1;
-    let lastSwitchScrollY = window.scrollY;
-    let researchScrollLockUntil = 0;
-    let researchScrollUnlockTimer = null;
-
-    const lockedScrollKeys = new Set([
-      'ArrowUp',
-      'ArrowDown',
-      'PageUp',
-      'PageDown',
-      'Home',
-      'End',
-      ' ',
-    ]);
-
-    function getResearchGrid(category) {
-      return category.querySelector('.publications-grid');
-    }
-
-    function setResearchGridState(category, expand, options = {}) {
-      const { immediate = false } = options;
-      const grid = getResearchGrid(category);
-      if (!grid) return;
-
-      category.classList.toggle('is-expanded', expand);
-      category.classList.toggle('is-collapsed', !expand);
-
-      if (expand) {
-        grid.removeAttribute('hidden');
-        if (immediate || prefersReducedMotion) {
-          grid.style.maxHeight = 'none';
-          grid.style.opacity = '1';
-          return;
-        }
-        grid.style.maxHeight = '0';
-        grid.style.opacity = '0';
-        requestAnimationFrame(() => {
-          grid.style.maxHeight = `${grid.scrollHeight}px`;
-          grid.style.opacity = '1';
-        });
-        grid.addEventListener('transitionend', function handler(event) {
-          if (event.propertyName !== 'max-height') return;
-          if (!category.classList.contains('is-expanded')) return;
-          grid.style.maxHeight = 'none';
-        }, { once: true });
-      } else {
-        if (immediate || prefersReducedMotion) {
-          grid.style.maxHeight = '0';
-          grid.style.opacity = '0';
-          grid.setAttribute('hidden', '');
-          return;
-        }
-        if (grid.style.maxHeight === 'none' || !grid.style.maxHeight) {
-          grid.style.maxHeight = `${grid.scrollHeight}px`;
-          void grid.offsetHeight;
-        }
-        grid.style.maxHeight = '0';
-        grid.style.opacity = '0';
-        grid.addEventListener('transitionend', function handler(event) {
-          if (event.propertyName !== 'max-height') return;
-          if (category.classList.contains('is-expanded')) return;
-          grid.setAttribute('hidden', '');
-        }, { once: true });
-      }
-    }
-
+  if (researchCategories.length > 0) {
     function getResearchIndexById(categoryId) {
       return researchCategories.findIndex(category => category.id === categoryId);
     }
 
-    function setResearchChipState(index) {
-      const id = researchCategories[index] ? researchCategories[index].id : '';
-      setActiveLinkState(researchChips, id);
-    }
-
-    function syncHeadingExpandedState() {
-      researchCategories.forEach((category, index) => {
-        const heading = category.querySelector('.category-title');
-        if (!heading) return;
-        heading.setAttribute('aria-expanded', index === activeResearchIndex ? 'true' : 'false');
-      });
-    }
-
-    function suppressAutoAccordion(duration = 500) {
-      suppressAutoUntil = Date.now() + duration;
-    }
-
-    function isResearchScrollLocked() {
-      return Date.now() < researchScrollLockUntil;
-    }
-
-    function clearResearchScrollLock() {
-      researchScrollLockUntil = 0;
-      if (researchScrollUnlockTimer) {
-        clearTimeout(researchScrollUnlockTimer);
-        researchScrollUnlockTimer = null;
-      }
-      document.body.classList.remove('research-scroll-lock');
-    }
-
-    function pauseResearchAutoForNavigation(duration = 2200) {
-      clearResearchScrollLock();
-      suppressAutoAccordion(duration);
-    }
-
-    function lockResearchUserScroll(duration = 1300) {
-      const now = Date.now();
-      researchScrollLockUntil = Math.max(researchScrollLockUntil, now + duration);
-
-      if (!document.body.classList.contains('research-scroll-lock')) {
-        document.body.classList.add('research-scroll-lock');
-      }
-
-      if (researchScrollUnlockTimer) {
-        clearTimeout(researchScrollUnlockTimer);
-      }
-
-      researchScrollUnlockTimer = window.setTimeout(() => {
-        if (Date.now() >= researchScrollLockUntil) {
-          document.body.classList.remove('research-scroll-lock');
-        }
-      }, duration + 24);
-    }
-
-    function scrollResearchCategoryToTop(category, smooth = true) {
-      if (!category) return;
+    function updateResearchChipState() {
       const navHeight = navbar ? navbar.offsetHeight : 0;
       const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
-      const offset = navHeight + sectionNavHeight + 16;
-      const targetY = window.scrollY + category.getBoundingClientRect().top - offset;
-      window.scrollTo({
-        top: Math.max(targetY, 0),
-        behavior: smooth && !prefersReducedMotion ? 'smooth' : 'auto',
-      });
-      lastSwitchScrollY = window.scrollY;
-      lastScrollY = window.scrollY;
-    }
-
-    function flashResearchCategory(category) {
-      if (!category) return;
-      category.classList.remove('is-attention');
-      // Restart animation if quickly re-selected.
-      void category.offsetWidth;
-      category.classList.add('is-attention');
-      window.setTimeout(() => {
-        category.classList.remove('is-attention');
-      }, 780);
-    }
-
-    function alignViewportToCategory(category, options = {}) {
-      const { smooth = true, highlight = false } = options;
-      const lockDuration = smooth ? 2100 : 1300;
-      suppressAutoAccordion(lockDuration);
-      lockResearchUserScroll(lockDuration);
-      requestAnimationFrame(() => {
-        scrollResearchCategoryToTop(category, smooth);
-        // Re-align after accordion transition settles.
-        setTimeout(() => scrollResearchCategoryToTop(category, false), 360);
-        if (highlight) {
-          flashResearchCategory(category);
-        }
-      });
-    }
-
-    function activateResearchIndex(nextIndex, options = {}) {
-      const { immediate = false, force = false, alignViewport = false, smoothScroll = true, highlight = false } = options;
-      const boundedIndex = Math.max(0, Math.min(researchCategories.length - 1, nextIndex));
-      const targetCategory = researchCategories[boundedIndex];
-      if (!targetCategory) return;
-
-      if (!force && boundedIndex === activeResearchIndex) {
-        setResearchChipState(activeResearchIndex);
-        syncHeadingExpandedState();
-        if (alignViewport) {
-          alignViewportToCategory(targetCategory, { smooth: smoothScroll, highlight });
-        } else if (highlight) {
-          flashResearchCategory(targetCategory);
-        }
-        return;
-      }
-
-      const applyState = () => {
-        // Prevent expanded details from creating large hidden layouts while scrolling
-        // across research categories.
-        researchCategories.forEach(closeExpandedPublicationCardsWithin);
-        researchCategories.forEach((category, index) => {
-          setResearchGridState(category, index === boundedIndex, { immediate });
-        });
-        activeResearchIndex = boundedIndex;
-        setResearchChipState(activeResearchIndex);
-        syncHeadingExpandedState();
-        lastSwitchScrollY = window.scrollY;
-      };
-
-      applyState();
-
-      if (alignViewport) {
-        alignViewportToCategory(targetCategory, { smooth: smoothScroll, highlight });
-      } else if (highlight) {
-        flashResearchCategory(targetCategory);
-      }
-    }
-
-    function updateScrollDirection() {
-      const currentY = window.scrollY;
-      if (Math.abs(currentY - lastScrollY) > 2) {
-        lastScrollDirection = currentY > lastScrollY ? 1 : -1;
-        lastScrollY = currentY;
-      }
-    }
-
-    function maybeUpdateResearchAccordion() {
-      if (Date.now() < suppressAutoUntil) return;
-      if (!researchSection) return;
-      if (Date.now() < publicationAccordionPauseUntil) return;
-
+      const triggerLine = navHeight + sectionNavHeight + 84;
       const sectionRect = researchSection.getBoundingClientRect();
-      if (sectionRect.bottom < 120 || sectionRect.top > window.innerHeight * 0.82) return;
+      const sectionIsActive = sectionRect.top < window.innerHeight * 0.68
+        && sectionRect.bottom > triggerLine + 24;
 
-      updateScrollDirection();
-      const navHeight = navbar ? navbar.offsetHeight : 0;
-      const sectionNavHeight = sectionNav ? sectionNav.offsetHeight : 0;
-      const triggerTop = navHeight + sectionNavHeight + 110;
-      const movedSinceSwitch = Math.abs(window.scrollY - lastSwitchScrollY) > 90;
-
-      if (!movedSinceSwitch) {
-        setResearchChipState(activeResearchIndex);
+      if (!sectionIsActive) {
+        setActiveLinkState(researchChips, '');
         return;
       }
 
-      if (lastScrollDirection > 0 && activeResearchIndex < researchCategories.length - 1) {
-        const nextCategory = researchCategories[activeResearchIndex + 1];
-        const nextTop = nextCategory.getBoundingClientRect().top;
-        if (nextTop <= triggerTop) {
-          suppressAutoAccordion(300);
-          activateResearchIndex(activeResearchIndex + 1, {
-            immediate: false,
-            force: true,
-            alignViewport: true,
-            smoothScroll: false,
-            highlight: true
-          });
-          return;
+      let currentId = researchCategories[0].id;
+      researchCategories.forEach(category => {
+        if (category.getBoundingClientRect().top <= triggerLine + 18) {
+          currentId = category.id;
         }
-      }
-
-      if (lastScrollDirection < 0 && activeResearchIndex > 0) {
-        const currentCategory = researchCategories[activeResearchIndex];
-        const currentTop = currentCategory.getBoundingClientRect().top;
-        if (currentTop > triggerTop + 120) {
-          suppressAutoAccordion(300);
-          activateResearchIndex(activeResearchIndex - 1, {
-            immediate: false,
-            force: true,
-            alignViewport: true,
-            smoothScroll: false,
-            highlight: true
-          });
-          return;
-        }
-      }
-
-      setResearchChipState(activeResearchIndex);
+      });
+      setActiveLinkState(researchChips, currentId);
     }
-
-    const hashCategoryId = window.location.hash.replace('#', '');
-    const hashIndex = getResearchIndexById(hashCategoryId);
-    const initialIndex = hashIndex >= 0 ? hashIndex : 0;
-    activateResearchIndex(initialIndex, { immediate: true, force: true });
 
     researchChips.forEach(chip => {
       chip.addEventListener('click', (event) => {
@@ -823,164 +576,14 @@
         if (window.location.hash !== `#${targetId}`) {
           history.replaceState(null, '', `#${targetId}`);
         }
-        suppressAutoAccordion(1000);
-        activateResearchIndex(targetIndex, {
-          immediate: false,
-          force: true,
-          alignViewport: true,
-          smoothScroll: true,
-          highlight: true
-        });
+        scrollToSection(targetId, { forJump: true });
       });
     });
 
-    researchCategories.forEach((category, index) => {
-      const heading = category.querySelector('.category-title');
-      const grid = getResearchGrid(category);
-      if (!heading) return;
-      if (grid && !grid.id) {
-        grid.id = `research-grid-${index + 1}`;
-      }
-      heading.setAttribute('tabindex', '0');
-      heading.setAttribute('role', 'button');
-      if (grid && grid.id) {
-        heading.setAttribute('aria-controls', grid.id);
-      }
-      heading.setAttribute('aria-expanded', index === activeResearchIndex ? 'true' : 'false');
-      heading.classList.add('is-clickable');
-
-      heading.addEventListener('click', () => {
-        if (window.location.hash !== `#${category.id}`) {
-          history.replaceState(null, '', `#${category.id}`);
-        }
-        suppressAutoAccordion(1000);
-        activateResearchIndex(index, {
-          immediate: false,
-          force: true,
-          alignViewport: true,
-          smoothScroll: true,
-          highlight: true
-        });
-      });
-
-      heading.addEventListener('keydown', (event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        if (window.location.hash !== `#${category.id}`) {
-          history.replaceState(null, '', `#${category.id}`);
-        }
-        suppressAutoAccordion(1000);
-        activateResearchIndex(index, {
-          immediate: false,
-          force: true,
-          alignViewport: true,
-          smoothScroll: true,
-          highlight: true
-        });
-      });
-    });
-
-    window.addEventListener('hashchange', () => {
-      const targetId = window.location.hash.replace('#', '');
-      if (targetId === 'research') {
-        pauseResearchAutoForNavigation(2400);
-        activateResearchIndex(0, { immediate: true, force: true });
-        return;
-      }
-      const targetIndex = getResearchIndexById(targetId);
-      if (targetIndex < 0) {
-        pauseResearchAutoForNavigation(2400);
-        return;
-      }
-      suppressAutoAccordion(1200);
-      activateResearchIndex(targetIndex, {
-        immediate: true,
-        force: true,
-        alignViewport: true,
-        smoothScroll: false
-      });
-    });
-
-    window.addEventListener('scroll', maybeUpdateResearchAccordion, { passive: true });
-
-    window.addEventListener('resize', () => {
-      researchCategories.forEach(category => {
-        const grid = getResearchGrid(category);
-        if (!grid) return;
-        if (category.classList.contains('is-expanded')) {
-          grid.removeAttribute('hidden');
-          grid.style.maxHeight = 'none';
-          grid.style.opacity = '1';
-        } else {
-          grid.style.maxHeight = '0';
-          grid.style.opacity = '0';
-          grid.setAttribute('hidden', '');
-        }
-      });
-      maybeUpdateResearchAccordion();
-    }, { passive: true });
-
-    maybeUpdateResearchAccordion();
-
-    const preventLockedScroll = (event) => {
-      if (!isResearchScrollLocked()) return;
-      event.preventDefault();
-    };
-
-    const preventLockedScrollKeys = (event) => {
-      if (!isResearchScrollLocked()) return;
-      if (!lockedScrollKeys.has(event.key)) return;
-      const target = event.target;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
-        return;
-      }
-      event.preventDefault();
-    };
-
-    window.addEventListener('wheel', preventLockedScroll, { passive: false });
-    window.addEventListener('touchmove', preventLockedScroll, { passive: false });
-    window.addEventListener('keydown', preventLockedScrollKeys, { passive: false });
-
-    // If user clicks a non-research anchor (e.g., navbar links to sections after Research),
-    // temporarily disable research auto-scroll logic so navigation can complete cleanly.
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', () => {
-        const href = anchor.getAttribute('href');
-        if (!href) return;
-        const targetId = href.replace('#', '');
-        if (!targetId) return;
-        if (targetId === 'research') {
-          pauseResearchAutoForNavigation(2400);
-          activateResearchIndex(0, { immediate: true, force: true });
-          return;
-        }
-        if (targetId.startsWith('research-')) return;
-        pauseResearchAutoForNavigation(2400);
-      });
-    });
-
-    // Same protection for floating section jump buttons (Previous / Next).
-    [prevSectionBtn, nextSectionBtn].forEach(button => {
-      if (!button) return;
-      button.addEventListener('click', () => {
-        const targetId = button.dataset.target || '';
-        if (!targetId) return;
-        if (targetId === 'research') {
-          pauseResearchAutoForNavigation(2400);
-          activateResearchIndex(0, { immediate: true, force: true });
-          return;
-        }
-        if (targetId.startsWith('research-')) return;
-        pauseResearchAutoForNavigation(2400);
-      });
-    });
-
-    if (backToTopBtn) {
-      backToTopBtn.addEventListener('click', () => {
-        clearResearchScrollLock();
-        pauseResearchAutoForNavigation(5200);
-      }, { capture: true });
-    }
+    window.addEventListener('scroll', updateResearchChipState, { passive: true });
+    window.addEventListener('resize', updateResearchChipState, { passive: true });
+    window.addEventListener('hashchange', updateResearchChipState);
+    updateResearchChipState();
   }
 
   // --- Teaching course card expand/collapse ---
